@@ -1,0 +1,68 @@
+---
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-byte-order-marker
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-yaml
+        files: .*\.(yaml|yml)$
+
+  # Autoformat: YAML, JSON, Markdown, etc.
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        args:
+          ["--ignore-unknown", "--no-error-on-unmatched-pattern", "!chart/**"]
+
+  # Lint: YAML
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args:
+          [
+            "-d {extends: relaxed, rules: {line-length: disable}, ignore: chart}",
+            "-s",
+          ]
+        files: \.(yaml|yml)$
+
+  # Lint: Markdown
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.42.0
+    hooks:
+      - id: markdownlint
+        args: ["--fix", "--disable", "MD013 MD033"]
+
+  # Lint: Terraform
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.96.1
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      - id: terraform_tflint
+      - id: terraform_trivy
+      - id: terraform_checkov
+      - id: terraform_docs
+      #- id: tfupdate
+
+  # Secu: Detect secrets
+  - repo: local
+    hooks:
+      - id: trufflehog
+        name: TruffleHog
+        description: Detect secrets in your data.
+        entry: bash -c 'trufflehog --no-update git file://. --since-commit HEAD --only-verified --fail'
+        language: system
+        stages: ["commit", "push"]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.23.1
+    hooks:
+      - id: gitleaks
