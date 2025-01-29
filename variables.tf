@@ -219,8 +219,8 @@ variable "vmgateway" {
 
 variable "dns_server_list" {
   description = "DNS server list."
-  type    = list(string)
-  default = null
+  type        = list(string)
+  default     = null
 }
 
 #Global Customization Variables

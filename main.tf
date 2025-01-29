@@ -27,13 +27,13 @@ data "vsphere_resource_pool" "pool" {
 
 data "vsphere_distributed_virtual_switch" "vds" {
   count         = (var.dc == "PAU-Prod" || var.dc == "ANGERS-Prod") ? 1 : 0
-  name          = format("%s%s","DSwitch-LAN-",var.dc)
+  name          = format("%s%s", "DSwitch-LAN-", var.dc)
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
 data "vsphere_network" "network" {
-  count         = length(var.network)
-  name          = keys(var.network)[count.index]
+  count = length(var.network)
+  name  = keys(var.network)[count.index]
   #distributed_virtual_switch_uuid = (var.dc == "PAU-Prod" || var.dc == "ANGERS-Prod") && var.datastore == null ? data.vsphere_distributed_virtual_switch.vds[0].id : null
   datacenter_id = data.vsphere_datacenter.dc.id
 }
@@ -68,13 +68,13 @@ data "vsphere_tag" "tag" {
   for_each    = local.tags_merged
   name        = each.value.sub
   category_id = data.vsphere_tag_category.category[each.key].id
-  depends_on = [var.tag_depends_on]
+  depends_on  = [var.tag_depends_on]
 }
 
 data "vsphere_folder" "folder" {
-  count = var.vmfolder != null ? 1 : 0
-  path  = "/${data.vsphere_datacenter.dc.name}/vm/${var.vmfolder}"
-  depends_on  = [var.vm_depends_on]
+  count      = var.vmfolder != null ? 1 : 0
+  path       = "/${data.vsphere_datacenter.dc.name}/vm/${var.vmfolder}"
+  depends_on = [var.vm_depends_on]
 }
 
 locals {
@@ -83,10 +83,10 @@ locals {
   tags_merged = merge([
     for key, values in var.tags : {
       for value in values :
-        "${key}-${value}" => {
-          "cat" = key
-          "sub" = value
-        }
+      "${key}-${value}" => {
+        "cat" = key
+        "sub" = value
+      }
     }
   ]...)
 }
@@ -97,9 +97,9 @@ resource "vsphere_virtual_machine" "vm" {
   depends_on = [var.vm_depends_on]
   name       = var.staticvmname != null ? var.staticvmname : format("${var.vmname}${var.vmnameformat}", count.index + 1 + var.start_instance)
 
-  resource_pool_id        = data.vsphere_resource_pool.pool.id
-  folder                  = var.vmfolder
-  tags                    = var.tag_ids != null ? var.tag_ids : [for u in data.vsphere_tag.tag : u.id ]
+  resource_pool_id = data.vsphere_resource_pool.pool.id
+  folder           = var.vmfolder
+  tags             = var.tag_ids != null ? var.tag_ids : [for u in data.vsphere_tag.tag : u.id]
 
   custom_attributes       = var.custom_attributes
   annotation              = var.annotation
@@ -174,9 +174,9 @@ resource "vsphere_virtual_machine" "vm" {
     for_each = var.content_library == null ? [] : [1]
     iterator = template_disks
     content {
-      label             = length(var.disk_label) > 0 ? var.disk_label[template_disks.key] : "disk${template_disks.key}"
-      size              = var.disk_size_gb[template_disks.key]
-      unit_number       = var.scsi_controller != null ? var.scsi_controller * 15 + template_disks.key : template_disks.key
+      label       = length(var.disk_label) > 0 ? var.disk_label[template_disks.key] : "disk${template_disks.key}"
+      size        = var.disk_size_gb[template_disks.key]
+      unit_number = var.scsi_controller != null ? var.scsi_controller * 15 + template_disks.key : template_disks.key
       // thin_provisioned  = data.vsphere_virtual_machine.template[0].disks[template_disks.key].thin_provisioned
       // eagerly_scrub     = data.vsphere_virtual_machine.template[0].disks[template_disks.key].eagerly_scrub
       datastore_id      = var.disk_datastore != "" ? data.vsphere_datastore.disk_datastore[0].id : null

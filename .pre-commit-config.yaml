@@ -46,7 +46,6 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
-      - id: terraform_tflint
       - id: terraform_trivy
       - id: terraform_checkov
       - id: terraform_docs
